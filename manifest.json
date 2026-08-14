@@ -1,0 +1,31 @@
+{
+  "name": "Custos de Produção — Pastelaria",
+  "short_name": "Pastelaria",
+  "description": "Gestão de custos e receitas para a tua pastelaria",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#f5c518",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "https://fav.farm/🍪",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "https://fav.farm/🍪",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://fav.farm/🍪",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

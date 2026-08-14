@@ -6,7 +6,8 @@
 <title>Custos de Produção — Pastelaria</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
+  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; color: #eee; }
   h1 { text-align: center; font-size: 1.5em; color: #f5c518; margin-bottom: 4px; }
   .subtitle { text-align: center; font-size: 0.82em; color: #aaa; margin-bottom: 20px; }
 
@@ -72,16 +73,15 @@
   .note { background: #16213e; border-left: 3px solid #f5c518; padding: 11px 15px; border-radius: 0 8px 8px 0; font-size: 0.8em; color: #bbb; line-height: 1.6; }
   .note strong { color: #f5c518; }
   /* ── Layout principal ───────────────────────────────────────────────────── */
-  .app-layout {
-    display: flex; min-height: 100vh; margin: -20px; gap: 0;
-  }
+  .app-layout { display: flex; height: 100vh; width: 100vw; overflow: hidden; gap: 0; }
   .sidebar {
     width: 200px; min-width: 200px; background: #0f1a35;
     border-right: 1px solid #1a2a5a; display: flex; flex-direction: column;
+    height: 100vh; overflow: hidden; flex-shrink: 0;
     transition: width 0.25s ease, min-width 0.25s ease;
     overflow: hidden; position: sticky; top: 0; height: 100vh; flex-shrink: 0;
   }
-  .sidebar.collapsed { width: 56px; min-width: 56px; }
+  .sidebar.collapsed { width: 48px; min-width: 48px; }
   .sidebar-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 16px 14px; border-bottom: 1px solid #1a2a5a; flex-shrink: 0;
@@ -99,7 +99,7 @@
     flex-shrink: 0; transition: all 0.18s;
   }
   .sidebar-toggle:hover { border-color: #f5c518; color: #f5c518; }
-  .sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; flex: 1; overflow-y: auto; }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; flex: 1; overflow-y: auto; overflow-x: hidden; }
   .app-tab {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 10px; border-radius: 8px; font-size: 0.88em; font-weight: 600;
@@ -111,9 +111,9 @@
   .app-tab .tab-icon { font-size: 1.15em; flex-shrink: 0; width: 22px; text-align: center; }
   .app-tab .tab-label { overflow: hidden; opacity: 1; transition: opacity 0.15s; }
   .sidebar.collapsed .tab-label { opacity: 0; width: 0; overflow: hidden; }
-  .sidebar.collapsed .app-tab { justify-content: center; padding: 10px 0; border-left: none; padding-left: 10px; }
-  .sidebar.collapsed .app-tab.active { border-left: 3px solid #f5c518; padding-left: 7px; }
-  .main-content { flex: 1; padding: 20px; overflow: auto; min-width: 0; }
+  .sidebar.collapsed .app-tab { justify-content: center; padding: 10px 0; border-left: none; padding-left: 0; }
+  .sidebar.collapsed .app-tab.active { border-left: 3px solid #f5c518; padding-left: 0; }
+  .main-content { flex: 1; padding: 20px; overflow-y: auto; overflow-x: hidden; min-width: 0; height: 100vh; box-sizing: border-box; }
 
   /* ── Calculadora (aba) ───────────────────────────────────────────────────── */
   #calc-wrap {
@@ -631,8 +631,10 @@
   .desp-input:focus { outline:none; border-color:#f5c518; }
   .suggested-price-box { background:#0f2a0f; border:1px solid #4ade80; border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; font-size:0.88em; }
   @media print {
+    html, body { overflow: visible !important; height: auto !important; }
+    .app-layout { height: auto !important; overflow: visible !important; }
+    .main-content { height: auto !important; overflow: visible !important; padding:10px!important; }
     .sidebar,.promo-section,.save-bar,.format-tabs,.batch-row,.selector-row { display:none!important; }
-    .main-content { padding:10px!important; }
     body { background:#fff!important; color:#000!important; }
     .panel { border:1px solid #ccc!important; background:#fff!important; page-break-inside:avoid; }
     .result-card { background:#f5f5f5!important; border:1px solid #ddd!important; }
@@ -799,6 +801,13 @@
   /* ══════════════════════════════════════════════════════════════════════════ */
 
 </style>
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjI1NiIgZmlsbD0iI2Y1YzUxOCIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjEwIiBmaWxsPSIjZTZhODAwIi8+CiAgPGNpcmNsZSBjeD0iMTgwIiBjeT0iMjAwIiByPSIyOCIgZmlsbD0iIzhCNDUxMyIvPgogIDxjaXJjbGUgY3g9IjMxMCIgY3k9IjE3MCIgcj0iMjIiIGZpbGw9IiM4QjQ1MTMiLz4KICA8Y2lyY2xlIGN4PSIzNDAiIGN5PSIzMDAiIHI9IjI2IiBmaWxsPSIjOEI0NTEzIi8+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iMzIwIiByPSIyMCIgZmlsbD0iIzhCNDUxMyIvPgogIDxjaXJjbGUgY3g9IjI3MCIgY3k9IjI2MCIgcj0iMTgiIGZpbGw9IiM4QjQ1MTMiLz4KICA8cGF0aCBkPSJNMjU2IDEyMCBRMjkwIDE0MCAzMTAgMTcwIFEzNDAgMTgwIDM1MCAyMTAgUTM3MCAyNDAgMzUwIDI3MCBRMzQwIDMxMCAzMTAgMzMwIFEyODAgMzYwIDI1MCAzNjAgUTIxMCAzNjAgMTgwIDM0MCBRMTUwIDMxMCAxNDUgMjgwIFExMzAgMjUwIDE0NSAyMjAgUTE2MCAxODUgMTkwIDE3MCBRMjEwIDE0NSAyNTYgMTIwWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzQ5MjBhIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1kYXNoYXJyYXk9IjgsNCIgb3BhY2l0eT0iMC41Ii8+Cjwvc3ZnPg==">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pastelaria">
+  <meta name="theme-color" content="#f5c518">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link id="pwa-manifest" rel="manifest">
 </head>
 <body>
 <div class="app-layout">
@@ -5073,6 +5082,53 @@ Promise.all([
   calcAlertas();
   calcDashboard();
 });
+
+// ── PWA Setup ────────────────────────────────────────────────────────────────
+(function() {
+  // Manifest via Blob URL
+  const manifest = {
+    name: "Custos de Produção — Pastelaria",
+    short_name: "Pastelaria",
+    description: "Gestão de custos e receitas para a pastelaria",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#1a1a2e",
+    theme_color: "#f5c518",
+    orientation: "any",
+    icons: [
+      { src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjI1NiIgZmlsbD0iI2Y1YzUxOCIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjEwIiBmaWxsPSIjZTZhODAwIi8+CiAgPGNpcmNsZSBjeD0iMTgwIiBjeT0iMjAwIiByPSIyOCIgZmlsbD0iIzhCNDUxMyIvPgogIDxjaXJjbGUgY3g9IjMxMCIgY3k9IjE3MCIgcj0iMjIiIGZpbGw9IiM4QjQ1MTMiLz4KICA8Y2lyY2xlIGN4PSIzNDAiIGN5PSIzMDAiIHI9IjI2IiBmaWxsPSIjOEI0NTEzIi8+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iMzIwIiByPSIyMCIgZmlsbD0iIzhCNDUxMyIvPgogIDxjaXJjbGUgY3g9IjI3MCIgY3k9IjI2MCIgcj0iMTgiIGZpbGw9IiM4QjQ1MTMiLz4KICA8cGF0aCBkPSJNMjU2IDEyMCBRMjkwIDE0MCAzMTAgMTcwIFEzNDAgMTgwIDM1MCAyMTAgUTM3MCAyNDAgMzUwIDI3MCBRMzQwIDMxMCAzMTAgMzMwIFEyODAgMzYwIDI1MCAzNjAgUTIxMCAzNjAgMTgwIDM0MCBRMTUwIDMxMCAxNDUgMjgwIFExMzAgMjUwIDE0NSAyMjAgUTE2MCAxODUgMTkwIDE3MCBRMjEwIDE0NSAyNTYgMTIwWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzQ5MjBhIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1kYXNoYXJyYXk9IjgsNCIgb3BhY2l0eT0iMC41Ii8+Cjwvc3ZnPg==", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+    ]
+  };
+  try {
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+    const url  = URL.createObjectURL(blob);
+    document.getElementById('pwa-manifest').href = url;
+  } catch(e) {}
+
+  // Inline Service Worker (cache para uso offline)
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+const CACHE = 'pastelaria-v1';
+self.addEventListener('install', e => { self.skipWaiting(); });
+self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.open(CACHE).then(cache =>
+      cache.match(e.request).then(cached => {
+        const fresh = fetch(e.request).then(r => { cache.put(e.request, r.clone()); return r; }).catch(() => cached);
+        return cached || fresh;
+      })
+    )
+  );
+});`;
+    try {
+      const swBlob = new Blob([swCode], {type: 'text/javascript'});
+      const swUrl  = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swUrl, {scope: './'}).catch(() => {});
+    } catch(e) {}
+  }
+})();
+
 </script>
 
 <!-- ════════════ ABA PROJECÇÃO ════════════ -->

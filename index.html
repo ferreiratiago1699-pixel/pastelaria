@@ -723,6 +723,81 @@
   body.light .alert-item.alert-ok { background:#e8f5e8; }
   body.light .forn-table td, body.light .forn-table th { border-color:#d8e0f0; }
   body.light .forn-input { background:#f5f8ff; border-color:#c0cce8; color:#1a1a2e; }
+
+  /* ══ RESPONSIVIDADE MOBILE ══════════════════════════════════════════════════ */
+  .hamburger-btn {
+    display: none; position: fixed; top: 12px; left: 12px; z-index: 1100;
+    background: #f5c518; color: #1a1a2e; border: none; border-radius: 8px;
+    width: 42px; height: 42px; font-size: 1.3em; cursor: pointer;
+    box-shadow: 0 2px 8px #0006; align-items: center; justify-content: center;
+  }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 1050;
+  }
+  .sidebar-overlay.open { display: block; }
+
+  @media (max-width: 768px) {
+    .hamburger-btn { display: flex !important; }
+    .sidebar {
+      position: fixed !important; left: -220px !important; top: 0;
+      height: 100vh; z-index: 1060;
+      transition: left 0.28s ease !important;
+      width: 200px !important; min-width: 200px !important;
+      box-shadow: 4px 0 24px #0008;
+    }
+    .sidebar.mobile-open { left: 0 !important; }
+    .sidebar.collapsed { width: 200px !important; min-width: 200px !important; }
+    .sidebar.collapsed .tab-label { opacity: 1 !important; width: auto !important; overflow: visible !important; }
+    .main-content { margin-left: 0 !important; padding: 60px 10px 20px !important; }
+    .main-content h1 { font-size: 1.1em; margin-bottom: 10px; }
+    .panel { padding: 12px 10px; margin-bottom: 12px; }
+    .panel-title { font-size: 0.95em; }
+    .result-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .result-card { padding: 10px 8px; }
+    .rval { font-size: 1.05em; }
+    .rsub { font-size: 0.68em; }
+    .dash-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+    .dash-card { padding: 12px 10px; }
+    .dk-val { font-size: 1.2em; }
+    .batch-row { flex-direction: column; gap: 8px; }
+    .sliders { gap: 14px; }
+    .slider-group { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .slider-group input[type=range] { width: 100% !important; }
+    .fi-recipes-table, .rank-table { display: block; overflow-x: auto; white-space: nowrap; width: 100%; }
+    .desp-row { grid-template-columns: 1.5fr 1fr; font-size: 0.8em; }
+    .desp-row .desp-input { padding: 4px; }
+    .format-tabs { gap: 4px; }
+    .fmt-tab { flex: 1; text-align: center; padding: 6px 4px; font-size: 0.8em; }
+    .save-bar { flex-wrap: wrap; gap: 6px; }
+    .btn-save, .btn-reset { flex: 1 1 auto; text-align: center; font-size: 0.82em; }
+    .export-grid { grid-template-columns: 1fr !important; }
+    .ing-table { font-size: 0.8em; }
+    .ing-table th, .ing-table td { padding: 5px 4px; }
+    .selector-row { flex-wrap: wrap; gap: 8px; }
+    #direct-price { width: 75px !important; }
+    .promo-controls { flex-wrap: wrap; }
+    canvas { max-width: 100% !important; height: auto !important; }
+    #ficha-modal > div { padding: 14px; margin: 10px; }
+    .be-card { padding: 10px 8px; }
+    .pkg-per-recipe { flex-wrap: wrap; }
+    .rank-table th, .rank-table td { padding: 6px 8px; font-size: 0.82em; }
+    .desp-month-card { padding: 12px 10px; }
+    .fi-group { width: 100% !important; }
+    select.fi-input { width: 100% !important; }
+    .cf-section { padding: 10px; }
+    .cf-row { font-size: 0.85em; }
+    .dash-rank-row { flex-wrap: wrap; gap: 6px; }
+  }
+  @media (max-width: 420px) {
+    .result-grid { grid-template-columns: 1fr 1fr !important; }
+    .rval { font-size: 0.95em; }
+    .rlabel { font-size: 0.65em; }
+    .panel { padding: 10px 8px; }
+  }
+  body.light .hamburger-btn { background: #c4920a; color: #fff; }
+  /* ══════════════════════════════════════════════════════════════════════════ */
+
 </style>
 </head>
 <body>
@@ -763,6 +838,10 @@
 </nav>
 
 <!-- Conteúdo principal -->
+<!-- Hamburger (mobile only) -->
+<button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileSidebar()" aria-label="Menu">☰</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
 <div class="main-content">
 
 <h1>🍪 Custos de Produção — Pastelaria</h1>
@@ -784,7 +863,8 @@
   </div>
   <div class="batch-row">
     <label>Esta receita rende</label>
-    <input type="number" id="batch-kg" min="0.1" max="500" step="0.5" value="22.5">
+    <input type="number" id="batch-kg" min="0.1" max="500" step="0.5" value="22.5"
+      oninput="updateBatchYields();updateResults()">
     <label>kg de massa</label>
     <span class="batch-divider"></span>
     <span class="batch-yields" id="batch-yields"></span>
@@ -798,6 +878,39 @@
     <input type="number" id="batch-time" min="1" max="600" step="5" value="120">
     <label>min</label>
     <span class="batch-info" id="batch-info"></span>
+  </div>
+
+  <!-- Estimativa de rendimento -->
+  <div id="yield-estimator" style="background:#0f1a35;border:1px solid #2a2a5a;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:0.82em;color:#888">⚖️ Peso total ingredientes:</span>
+        <strong id="yield-raw-weight" style="color:#f5c518"></strong>
+        <span style="font-size:0.82em;color:#888">→ Tipo:</span>
+        <select id="yield-type" class="fi-input" style="width:auto;text-align:left;padding:4px 8px;font-size:0.82em"
+          onchange="calcYieldEstimate()">
+          <option value="18">🍪 Biscoitos / Bolachas (−18%)</option>
+          <option value="12">🎂 Bolos / Cakes (−12%)</option>
+          <option value="15">🥐 Brioches / Pão doce (−15%)</option>
+          <option value="10">🥧 Tartes / Quiches (−10%)</option>
+          <option value="custom">✏️ Personalizado</option>
+        </select>
+        <span id="yield-custom-wrap" style="display:none;align-items:center;gap:6px">
+          <span style="font-size:0.82em;color:#888">Perda:</span>
+          <input type="number" id="yield-custom-pct" min="0" max="50" value="15"
+            style="width:55px;background:#1a2a4a;border:1px solid #2a2a5a;border-radius:6px;color:#eee;padding:4px 6px;text-align:center"
+            oninput="calcYieldEstimate()">
+          <span style="font-size:0.82em;color:#888">%</span>
+        </span>
+        <span style="font-size:0.82em;color:#888">→ Estimativa:</span>
+        <strong id="yield-estimated" style="color:#4ade80;font-size:1.05em"></strong>
+      </div>
+      <button id="yield-use-btn" onclick="useYieldEstimate()"
+        style="background:#4ade80;color:#1a1a2e;border:none;border-radius:6px;padding:5px 12px;font-size:0.82em;font-weight:700;cursor:pointer;white-space:nowrap">
+        ↑ Usar estimativa
+      </button>
+    </div>
+    <div id="yield-unconvertible" style="font-size:0.75em;color:#888;margin-top:6px;display:none"></div>
   </div>
   <table class="ing-table">
     <thead>
@@ -1441,6 +1554,100 @@ function setFormat(fmt) {
   updateResults();
 }
 
+// ── Estimativa de rendimento ──────────────────────────────────────────────────
+
+// Conversão de unidades para kg (aproximada)
+// Unidades 'Un' usam avgWeightG do ingrediente
+const UNIT_TO_KG = {
+  Kg: 1, kg: 1, g: 0.001, G: 0.001,
+  L: 1, l: 1, ml: 0.001, Ml: 0.001,
+  oz: 0.02835, lb: 0.4536,
+  cup: 0.24, tbsp: 0.015, tsp: 0.005, pinch: 0.0003,
+};
+
+function calcYieldEstimate() {
+  const prod = state[cur];
+  if (!prod) return;
+
+  let totalKg = 0;
+  const unconvertible = [];
+
+  prod.ingredients.forEach(ing => {
+    if (ing.unit === 'Un') {
+      // Look up avgWeightG from master ingredient list
+      const masterIng = masterIngs.find(m => m.name === ing.name);
+      const avgG = masterIng?.avgWeightG;
+      if (avgG && avgG > 0) {
+        totalKg += ing.qty * avgG / 1000;
+      } else {
+        unconvertible.push(ing.name + ' (unidade — define o peso médio em 🥚 Ingredientes)');
+      }
+    } else {
+      const factor = UNIT_TO_KG[ing.unit];
+      if (factor !== undefined) {
+        totalKg += ing.qty * factor;
+      } else {
+        unconvertible.push(ing.name + ' (' + ing.unit + ')');
+      }
+    }
+  });
+
+  const estimatorEl  = document.getElementById('yield-estimator');
+  const rawWeightEl  = document.getElementById('yield-raw-weight');
+  const estimatedEl  = document.getElementById('yield-estimated');
+  const unconvEl     = document.getElementById('yield-unconvertible');
+  const customWrap   = document.getElementById('yield-custom-wrap');
+
+  if (totalKg === 0 && unconvertible.length === 0) {
+    estimatorEl.style.display = 'none';
+    return;
+  }
+
+  estimatorEl.style.display = '';
+
+  // Show total raw weight
+  rawWeightEl.textContent = totalKg > 0
+    ? (totalKg >= 1 ? totalKg.toFixed(2) + ' kg' : (totalKg * 1000).toFixed(0) + ' g')
+    : '?';
+
+  // Loss percentage
+  const typeEl = document.getElementById('yield-type');
+  const isCustom = typeEl.value === 'custom';
+  customWrap.style.display = isCustom ? 'flex' : 'none';
+  const lossPct = isCustom
+    ? parseFloat(document.getElementById('yield-custom-pct').value) || 15
+    : parseFloat(typeEl.value);
+
+  const estimatedKg = totalKg * (1 - lossPct / 100);
+  estimatedEl.textContent = estimatedKg > 0
+    ? estimatedKg.toFixed(2) + ' kg  (−' + lossPct + '%)'
+    : '?';
+
+  // Store for use button
+  estimatedEl.dataset.value = estimatedKg.toFixed(2);
+
+  // Unconvertible warning
+  if (unconvertible.length > 0) {
+    unconvEl.style.display = '';
+    unconvEl.textContent = '⚠️ Não incluídos no cálculo (unidade desconhecida): ' + unconvertible.join(', ');
+  } else {
+    unconvEl.style.display = 'none';
+  }
+}
+
+function useYieldEstimate() {
+  const val = parseFloat(document.getElementById('yield-estimated')?.dataset.value);
+  if (!val || isNaN(val)) return;
+  const batchKgEl = document.getElementById('batch-kg');
+  if (batchKgEl) {
+    batchKgEl.value = val.toFixed(2);
+    batchKgEl.style.borderColor = '#4ade80';
+    setTimeout(() => batchKgEl.style.borderColor = '', 2000);
+    updateBatchYields();
+    updateResults();
+  }
+}
+
 function toggleExcludeLabor() {
   excludeLabor = !excludeLabor;
   updateResults();
@@ -1812,6 +2019,7 @@ function renderAll() {
   if (rpBag) rpBag.value = prod.pkgBag != null ? prod.pkgBag.toFixed(2) : '';
   buildIngTable();
   updateResults();
+  calcYieldEstimate();
 }
 
 function updateBatchYields() {
@@ -2377,7 +2585,25 @@ let cReset   = false;
 let cMem     = 0;
 let cHasMem  = false;
 
+// ── Mobile sidebar ───────────────────────────────────────────────────────────
+
+function toggleMobileSidebar() {
+  const sidebar  = document.getElementById('sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const isOpen   = sidebar.classList.contains('mobile-open');
+  if (isOpen) { closeMobileSidebar(); }
+  else { sidebar.classList.add('mobile-open'); overlay.classList.add('open'); }
+}
+
+function closeMobileSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
 function showTab(name) {
+  // Fechar sidebar no mobile ao seleccionar aba
+  if (window.innerWidth <= 768) closeMobileSidebar();
+
   ['dashboard','receitas','custos','calc','fiscal','cashflow','breakeven','producao','iva',
    'projecao','cenarios','roi','alertas','fornecedores','ingredientes','ranking','exportar','despesas'].forEach(t => {
     const el = document.getElementById('tab-' + t);
@@ -2742,6 +2968,19 @@ function renderIngredientes() {
             `<option ${ing.unit===u?'selected':''}>${u}</option>`).join('')}
         </select>
       </td>
+      <td style="text-align:right;min-width:100px">
+        ${ing.unit === 'Un' ? `
+        <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">
+          <input type="number" min="0" step="1" placeholder="—"
+            title="Peso médio por unidade (gramas) — usado para estimar rendimento"
+            value="${ing.avgWeightG != null ? ing.avgWeightG : ''}"
+            data-id="${ing.id}" data-field="avgWeightG"
+            oninput="onMasterIngChange(this)"
+            style="width:54px;background:#0f1a35;border:1px solid #2a3a5a;border-radius:5px;
+                   color:#4ade80;padding:4px 5px;font-size:0.85em;text-align:right">
+          <span style="font-size:0.75em;color:#666">g/un</span>
+        </div>` : `<span style="color:#444;font-size:0.8em">—</span>`}
+      </td>
       <td style="text-align:right">
         <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
           <input class="ing-price-edit" type="number" min="0" step="0.01"
@@ -2779,18 +3018,19 @@ function onMasterIngChange(el) {
 
   if (field === 'name')  ing.name  = el.value;
   if (field === 'unit')  ing.unit  = el.value;
+  if (field === 'avgWeightG') {
+    ing.avgWeightG = el.value === '' ? null : parseFloat(el.value);
+    calcYieldEstimate();
+    return;
+  }
   if (field === 'price') {
     ing.price = parseFloat(el.value) || 0;
-    // Propagate price to all recipes immediately
     propagatePriceToRecipes(ing.name, ing.price);
-    // Flash the row
     const row = document.getElementById('ing-row-' + id);
     if (row) { row.classList.remove('ing-updated'); void row.offsetWidth; row.classList.add('ing-updated'); }
-    // Refresh "usado em" column
     renderIngredientes();
   }
   if (field === 'name') {
-    // Update recipe ingredients with old name to new name (optional — keep them in sync)
     const oldKey = oldName.trim().toLowerCase();
     const newKey = ing.name.trim().toLowerCase();
     if (oldKey !== newKey) {
@@ -2837,7 +3077,7 @@ async function saveFornecedores() {
     await window.storage.set(FORN_KEY, JSON.stringify(fornData));
     await recordCurrentPrices();
     status.textContent = '✔ Guardado!'; status.className = 'save-status ok';
-    if (typeof buildIngTable === 'function') { buildIngTable(); updateResults(); }
+    if (typeof buildIngTable === 'function') { buildIngTable(); updateResults(); calcYieldEstimate(); }
   } catch(_) {
     status.textContent = '✘ Erro.'; status.className = 'save-status err';
   }
@@ -3170,7 +3410,101 @@ function renderExportar() {
       <div class="ex-title">Imprimir Vista Actual</div>
       <div class="ex-desc">Imprime o conteúdo da aba actualmente visível na aplicação.</div>
     </div>
-  </div>`;
+    <div class="export-card" onclick="document.getElementById('import-json-input').click()">
+      <div class="ex-icon">📥</div>
+      <div class="ex-title">Importar Backup JSON</div>
+      <div class="ex-desc">Carrega um ficheiro de backup JSON para restaurar todos os dados — receitas, ingredientes, custos e fornecedores.</div>
+    </div>
+  </div>
+  <input type="file" id="import-json-input" accept=".json" style="display:none" onchange="importJSON(this)">
+  <div id="import-status" style="margin-top:14px"></div>`;
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const statusEl = document.getElementById('import-status');
+    try {
+      const data = JSON.parse(e.target.result);
+      // Validate basic structure
+      if (!data.state && !data.fixedCosts && !data.masterIngs) {
+        throw new Error('Ficheiro inválido — não parece ser um backup da app.');
+      }
+
+      // Show confirmation inline
+      statusEl.innerHTML = `
+        <div style="background:#2a1a00;border:1px solid #f5c518;border-radius:10px;padding:16px">
+          <div style="font-weight:700;color:#f5c518;margin-bottom:8px">⚠️ Confirmar importação</div>
+          <div style="font-size:0.85em;color:#aaa;margin-bottom:12px">
+            Isto irá <strong style="color:#f87171">substituir todos os dados actuais</strong> pelos do ficheiro.<br>
+            Receitas encontradas: <strong style="color:#eee">${(data.state||[]).length}</strong> · 
+            Ingredientes: <strong style="color:#eee">${(data.masterIngs||[]).length}</strong> · 
+            Exportado em: <strong style="color:#eee">${data.exportedAt ? new Date(data.exportedAt).toLocaleDateString('pt-PT') : '?'}</strong>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="confirmImportJSON()" 
+              style="background:#f5c518;color:#1a1a2e;border:none;border-radius:6px;padding:8px 16px;font-weight:700;cursor:pointer">
+              ✅ Confirmar importação
+            </button>
+            <button onclick="document.getElementById('import-status').innerHTML='';document.getElementById('import-json-input').value=''"
+              style="background:transparent;border:1px solid #555;color:#888;border-radius:6px;padding:8px 14px;cursor:pointer">
+              Cancelar
+            </button>
+          </div>
+        </div>`;
+      // Store parsed data temporarily
+      window._pendingImport = data;
+    } catch(err) {
+      statusEl.innerHTML = `<div style="color:#f87171;padding:10px;background:#2a0a0a;border-radius:8px">
+        ❌ Erro: ${err.message}</div>`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function confirmImportJSON() {
+  const data = window._pendingImport;
+  if (!data) return;
+  const statusEl = document.getElementById('import-status');
+  try {
+    // Save each section to storage
+    if (data.state) {
+      for (const prod of data.state) {
+        const key = prod.isCustom
+          ? 'pastelaria:produto-custom:' + prod.id
+          : 'pastelaria:produto:' + prod.id;
+        await window.storage.set('pastelaria:produto:' + prod.id, JSON.stringify(prod));
+      }
+    }
+    if (data.fixedCosts)
+      await window.storage.set('pastelaria:custos-fixos', JSON.stringify(data.fixedCosts));
+    if (data.masterIngs)
+      await window.storage.set('pastelaria:ingredientes-mestre', JSON.stringify(data.masterIngs));
+    if (data.fornData)
+      await window.storage.set('pastelaria:fornecedores', JSON.stringify(data.fornData));
+    if (data.savedPrices)
+      await window.storage.set('pastelaria:alertas-precos', JSON.stringify(data.savedPrices));
+    // Reload the full app state
+    await Promise.all([
+      loadAllSaved(), loadCustomProducts(), loadFixedCosts(),
+      loadFornecedores(), loadSavedPrices(), loadMasterIngs()
+    ]);
+    masterIngs.forEach(ing => propagatePriceToRecipes(ing.name, ing.price));
+    buildFixedCostsGrid();
+    buildSelector();
+    renderAll();
+    calcAlertas();
+    window._pendingImport = null;
+    document.getElementById('import-json-input').value = '';
+    statusEl.innerHTML = `<div style="color:#4ade80;padding:10px;background:#0a2a0a;border-radius:8px">
+      ✅ Importação concluída! Todos os dados foram restaurados.</div>`;
+    setTimeout(() => { statusEl.innerHTML = ''; }, 4000);
+  } catch(err) {
+    statusEl.innerHTML = `<div style="color:#f87171;padding:10px;background:#2a0a0a;border-radius:8px">
+      ❌ Erro na importação: ${err.message}</div>`;
+  }
 }
 
 function exportJSON() {
@@ -4939,6 +5273,7 @@ Promise.all([
           <th>Ingrediente</th>
           <th>Unidade</th>
           <th style="text-align:right">Preço / unidade</th>
+          <th style="text-align:right" title="Peso médio por unidade — usado para estimar o rendimento das receitas">⚖️ Peso médio</th>
           <th>Usado em</th>
           <th style="text-align:center">Ações</th>
         </tr></thead>

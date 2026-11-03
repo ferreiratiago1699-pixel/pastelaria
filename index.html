@@ -616,6 +616,7 @@
   .rank-table th:first-child { text-align:left; }
   .rank-table td { padding:9px 12px; border-bottom:1px solid #1a1a3a; text-align:right; }
   .rank-table td:first-child { text-align:left; }
+  .rank-table th:nth-child(2), .rank-table td:nth-child(2) { text-align:left; }
   .rank-table tr:hover td { background:#1e2a4a; }
   .rank-bar-bg { background:#1a1a3a; border-radius:4px; height:6px; overflow:hidden; width:80px; display:inline-block; vertical-align:middle; margin-left:6px; }
   .rank-bar-fill { height:100%; border-radius:4px; }
@@ -5571,7 +5572,7 @@ function calcRanking() {
   const mu = markup / 100;
   const sortBy = document.getElementById('rank-sort')?.value || 'margin';
 
-  const metrics = state.map(prod => {
+  const metrics = state.filter(p => !p.isSingular).map(prod => {
     const sBox = prod.salesBox ?? 0, sBag = prod.salesBag ?? 0;
     const batchKg   = prod.batchKg ?? 15;
     const ingPerKg  = prod.ingredients.reduce((s,i)=>s+i.qty*i.price,0) / batchKg;
@@ -5624,6 +5625,42 @@ function calcRanking() {
       </tr>`;
     }).join('')}
     </tbody>
+  </table>` + renderRankingSingulares(sortBy, laborRate, markup, fixedPerKg);
+}
+
+// Ranking das receitas singulares (venda à unidade)
+function renderRankingSingulares(sortBy, laborRate, markup, fixedPerKg) {
+  const sing = state.filter(p => p.isSingular === true);
+  if (sing.length === 0) return '';
+  const rows = sing.map(p => {
+    const batchUnits = p.batchUnits || 1;
+    const ingPerUnit = p.ingredients.reduce((s,i)=>s+i.qty*i.price,0) / batchUnits;
+    const laborFull  = ((p.tempoLote||60)/60 * laborRate) / batchUnits;
+    const laborDisp  = excludeLabor ? 0 : laborFull;
+    const fixed      = fixedPerKg * 1.5 / batchUnits;
+    const custoTotal = ingPerUnit + fixed + laborFull;
+    const custoDisp  = ingPerUnit + fixed + laborDisp;
+    const preco      = p.priceUnit != null ? p.priceUnit : custoTotal*(1+markup/100);
+    const vol        = p.salesUnits ?? 0;
+    const rev        = preco*vol, profit = (preco-custoDisp)*vol;
+    const margin     = preco > 0 ? (preco-custoDisp)/preco*100 : 0;
+    return { name:p.name, margin, profit, rev, volume:vol, preco };
+  }).sort((a,b) => b[sortBy] - a[sortBy]);
+  return `<h3 style="margin:28px 0 6px;font-size:1em;color:#f5c518">🍰 Singulares (venda à unidade)</h3>
+  <table class="rank-table">
+    <thead><tr>
+      <th style="text-align:left">Pos.</th><th style="text-align:left">Receita</th>
+      <th>Margem</th><th>Lucro/mês</th><th>Receita/mês</th><th>Unidades/mês</th><th>Preço/un.</th>
+    </tr></thead>
+    <tbody>${rows.map((p,i) => `<tr>
+      <td style="font-size:1.2em">${['🥇','🥈','🥉'][i]||'#'+(i+1)}</td>
+      <td style="font-weight:600">${p.name}</td>
+      <td style="color:${p.margin>=55?'#4ade80':p.margin>=40?'#fbbf24':'#f87171'}">${p.margin.toFixed(1).replace('.',',')}%</td>
+      <td style="color:#60a5fa">${fmtF(p.profit)}</td>
+      <td>${fmtF(p.rev)}</td>
+      <td>${p.volume}</td>
+      <td style="color:#fbbf24">${fmtF(p.preco)}</td>
+    </tr>`).join('')}</tbody>
   </table>`;
 }
 
@@ -6945,7 +6982,7 @@ async function snapshotMargens() {
   const mu = markup / 100;
   const snap = {};
 
-  state.forEach(prod => {
+  state.filter(p => !p.isSingular).forEach(prod => {
     const { pkgBox } = getRecipePkg(prod);
     const batchKg  = prod.batchKg ?? 15;
     const ingPerKg = prod.ingredients.reduce((s,i)=>s+i.qty*i.price,0)/batchKg;
@@ -6985,7 +7022,7 @@ function renderMargemChart() {
   const lastMonth = months[months.length-1];
   const lastSnap  = margemHistorico[lastMonth] || {};
   const topProds  = state
-    .filter(p => lastSnap[p.id] !== undefined)
+    .filter(p => !p.isSingular && lastSnap[p.id] !== undefined)
     .sort((a,b) => (lastSnap[b.id]||0) - (lastSnap[a.id]||0))
     .slice(0, 6);
 

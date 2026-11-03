@@ -5590,7 +5590,8 @@ function calcRanking() {
     const rev    = pBox*sBox + pBag*sBag;
     const cost   = fullBox*sBox + fullBag*sBag;
     const profit = rev - cost;
-    const margin = rev > 0 ? profit/rev*100 : 0;
+    // Margem = margem da caixa (igual ao separador Receitas)
+    const margin = pBox > 0 ? (pBox-fullBox)/pBox*100 : 0;
     const volume = sBox + sBag;
     return { name: prod.name, margin, profit, rev, volume, pBox, fullBox };
   });
@@ -5604,7 +5605,7 @@ function calcRanking() {
     <thead><tr>
       <th style="text-align:left">Pos.</th>
       <th style="text-align:left">Receita</th>
-      <th>Margem</th>
+      <th>Margem (caixa)</th>
       <th>Lucro/mês</th>
       <th>Receita/mês</th>
       <th>Volume</th>

@@ -2991,6 +2991,9 @@ function updateResults() {
 const CUSTOM_PRODUCTS_KEY = 'pastelaria:receitas-custom';
 
 function addProduct() {
+  // Guardar a receita/singular actual antes de mudar de seleção
+  clearTimeout(_autoSaveTimer); clearTimeout(_singAutoSaveTimer);
+  if (state[cur]) saveProduct(true);
   const newProd = {
     id: 'custom_' + Date.now(),
     name: '🆕 Nova receita',
@@ -3006,6 +3009,7 @@ function addProduct() {
   cur = state.length - 1;
   buildSelector();
   renderAll();
+  saveProduct(true);
   // Focar no título para editar de imediato
   const titleEl = document.getElementById('prod-title');
   titleEl.select();
@@ -3105,6 +3109,7 @@ async function loadProdutos() {
           toSync.push(p);
         }
         if (r.is_singular === true) p.isSingular = true;
+        else if (p.isSingular === true && !toSync.includes(p)) toSync.push(p); // reparar linhas antigas gravadas sem os campos de singular
       } else if (temDados) {
         state.push({
           ...dados,
@@ -3207,6 +3212,12 @@ async function saveProduct(silent = false) {
       name:  prod.name,
       salesBox: prod.salesBox ?? 100,
       salesBag: prod.salesBag ?? 0,
+      isSingular:  prod.isSingular === true,
+      batchUnits:  prod.batchUnits  ?? null,
+      salesUnits:  prod.salesUnits  ?? 0,
+      priceUnit:   prod.priceUnit   ?? null,
+      unitsPerBox: prod.unitsPerBox ?? null,
+      unitsPerBag: prod.unitsPerBag ?? null,
       ingredients: prod.ingredients.map(i => ({ ...i }))
     });
     await window.storage.set(storageKey(prod.id), data);
@@ -3453,6 +3464,16 @@ function showTab(name) {
   document.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
   const activeBtn = document.querySelector(`.app-tab[onclick="showTab('${name}')"]`);
   if (activeBtn) activeBtn.classList.add('active');
+  if (name === 'receitas' && state[cur]?.isSingular) {
+    clearTimeout(_singAutoSaveTimer); saveProduct(true);
+    const i = state.findIndex(p => !p.isSingular);
+    if (i >= 0) { cur = i; buildSelector(); renderAll(); }
+  }
+  if (name === 'singular' && !state[cur]?.isSingular) {
+    clearTimeout(_autoSaveTimer); saveProduct(true);
+    const i = state.findIndex(p => p.isSingular);
+    if (i >= 0) cur = i;
+  }
   if (name === 'receitas')     { updateResults(); calcYieldEstimate(); }
   if (name === 'custos')       { buildFixedCostsGrid(); }
   if (name === 'fiscal')       { calcFiscal(); calcPersonalBreakeven(); updateGrowthSim(); }

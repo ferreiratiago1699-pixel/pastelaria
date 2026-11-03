@@ -3492,7 +3492,7 @@ function showTab(name) {
   if (name === 'singular')      renderSingulares();
   if (name === 'exportar')      renderExportar();
   if (name === 'clientes')     renderClientes();
-  if (name === 'encomendas')   renderEncomendas();
+  if (name === 'encomendas')   { renderEncomendas(); importarEncomendas(true); }
   if (name === 'faturas')      renderFaturas();
   if (name === 'vendas')        renderVendas();
   if (name === 'orcamentos')    renderOrcamentos();
@@ -3804,7 +3804,60 @@ let _encFilter = 'todas';
 
 async function loadEncomendas() {
   try { const r = await window.storage.get(ENC_KEY); if (r?.value) encomendas = JSON.parse(r.value); } catch(_) {}
+  setTimeout(() => importarEncomendas(true), 1500);
 }
+// ── Importar encomendas feitas no site dos clientes (Supabase) ──────────────
+let _impEncBusy = false;
+function _encToast(msg, err) {
+  let t = document.getElementById('enc-import-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'enc-import-toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;padding:12px 20px;border-radius:10px;font-size:.9rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4)';
+    document.body.appendChild(t); }
+  t.style.background = err ? '#f87171' : '#16a34a'; t.style.color = '#fff';
+  t.textContent = msg; t.style.display = '';
+  clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 4500);
+}
+async function importarEncomendas(silent) {
+  if (_impEncBusy) return; _impEncBusy = true;
+  try {
+    const rows = await sbFetch('/rest/v1/encomendas?select=*,encomenda_items(*)&order=created_at.desc&limit=200');
+    let novas = 0, atualizadas = 0;
+    for (const r of (rows || [])) {
+      const items = (r.encomenda_items || []).map(i => ({
+        prodId: i.produto_id, prodName: i.produto_nome,
+        box: i.box || 0, bag: i.bag || 0, units: i.units || 0,
+        pBox: i.preco_caixa || 0, pBag: i.preco_saco || 0, pUnit: i.preco_unit || 0
+      }));
+      const ex = encomendas.find(e => e.siteId === r.id);
+      if (ex) {
+        if ((!ex.items || ex.items.length === 0) && items.length > 0) { ex.items = items; atualizadas++; }
+        continue;
+      }
+      encomendas.unshift({
+        id: 'site_' + r.id, siteId: r.id, origem: 'site',
+        cliId: r.cliente_id, cliNome: r.cliente_nome || '?',
+        data: r.data_entrega || (r.created_at || '').slice(0, 10),
+        entrega: r.tipo_entrega || 'loja', notas: r.notas || '',
+        total: Number(r.total) || 0, items,
+        status: r.status || 'pendente',
+        caixasDevolvidas: 0, descontoDiv: 0, createdAt: r.created_at
+      });
+      novas++;
+    }
+    if (novas || atualizadas) {
+      encomendas.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      await saveEncomendas();
+      if (document.getElementById('tab-encomendas')?.style.display !== 'none') renderEncomendas();
+      if (typeof updateFatEncSelects === 'function') updateFatEncSelects();
+    }
+    if (!silent) _encToast(novas ? '📥 ' + novas + ' encomenda(s) nova(s) do site importada(s)' : 'Sem encomendas novas no site.');
+    else if (novas) _encToast('📥 ' + novas + ' encomenda(s) nova(s) do site');
+  } catch (e) {
+    console.warn('[importarEncomendas]', e.message);
+    if (!silent) _encToast('Erro ao importar encomendas: ' + e.message.slice(0, 120), true);
+  } finally { _impEncBusy = false; }
+}
+
 async function saveEncomendas() {
   try { await window.storage.set(ENC_KEY, JSON.stringify(encomendas)); } catch(_) {}
 }
@@ -3940,7 +3993,7 @@ function renderEncomendas(){
   const sL={pendente:'⏳ Pendente',preparacao:'🔧 Em preparação',entregue:'✅ Entregue',cancelada:'❌ Cancelada'};
   const sC={pendente:'enc-pend',preparacao:'enc-prep',entregue:'enc-ent',cancelada:'enc-canc'};
   el.innerHTML=list.map(enc=>{
-    const iStr=enc.items.map(i=>{const p=[];if(i.box>0)p.push(i.box+' cx');if(i.bag>0)p.push(i.bag+' sacos');return i.prodName+': '+p.join('+');}).join(' · ');
+    const iStr=enc.items.map(i=>{const p=[];if(i.box>0)p.push(i.box+' cx');if(i.bag>0)p.push(i.bag+' sacos');if(i.units>0)p.push(i.units+' un');return i.prodName+': '+p.join('+');}).join(' · ');
     const col=enc.status==='entregue'?'#4ade80':enc.status==='cancelada'?'#f87171':enc.status==='preparacao'?'#60a5fa':'#fbbf24';
     return '<div style="background:#0f1a35;border-radius:10px;padding:14px;margin-bottom:8px;border-left:4px solid '+col+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px">'

@@ -3972,7 +3972,22 @@ function setEncFilter(f){
 
 async function setEncStatus(id,status){
   const enc=encomendas.find(e=>e.id===id);
-  if(enc){enc.status=status;await saveEncomendas();renderEncomendas();}
+  if(enc){
+    enc.status=status;await saveEncomendas();renderEncomendas();
+    // Encomendas vindas do site: actualizar também no Supabase (o cliente vê o estado)
+    if (enc.siteId) {
+      try {
+        const r = await sbFetch('/rest/v1/encomendas?id=eq.' + encodeURIComponent(enc.siteId), {
+          method:'PATCH', headers:{'Prefer':'return=representation'}, body: JSON.stringify({status})
+        });
+        if (!r || r.length === 0) throw new Error('sem permissão (verifica a regra de update no Supabase)');
+        _encToast('✔ Estado actualizado no site do cliente');
+      } catch(e) {
+        console.warn('[setEncStatus Supabase]', e.message);
+        _encToast('⚠️ Estado guardado só na app: ' + e.message.slice(0,90), true);
+      }
+    }
+  }
 }
 
 async function deleteEncomenda(id){

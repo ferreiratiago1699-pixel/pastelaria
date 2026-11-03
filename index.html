@@ -5459,7 +5459,7 @@ function calcDashboard() {
     }
     const sBox = prod.salesBox ?? 0, sBag = prod.salesBag ?? 0;
     const ingPerKg = prod.ingredients.reduce((s,i)=>s+i.qty*i.price,0)/(prod.batchKg??15);
-    const laborPerKg_ = ((prod.tempoLote??120)/60*laborRate)/(prod.batchKg??15);
+    const laborPerKg_ = excludeLabor ? 0 : ((prod.tempoLote??120)/60*laborRate)/(prod.batchKg??15);
     const { pkgBox: dPkgBox, pkgBag: dPkgBag } = getRecipePkg(prod);
     const fullBox = ingPerKg*1.5 + fixedPerKg*1.5 + dPkgBox + energy + laborPerKg_*1.5;
     const fullBag = ingPerKg*0.5 + fixedPerKg*0.5 + dPkgBag + energy*(0.5/1.5) + laborPerKg_*0.5;
@@ -5576,7 +5576,7 @@ function calcRanking() {
     const sBox = prod.salesBox ?? 0, sBag = prod.salesBag ?? 0;
     const batchKg   = prod.batchKg ?? 15;
     const ingPerKg  = prod.ingredients.reduce((s,i)=>s+i.qty*i.price,0) / batchKg;
-    const laborPerKg_ = ((prod.tempoLote??120)/60*laborRate) / batchKg;
+    const laborPerKg_ = excludeLabor ? 0 : ((prod.tempoLote??120)/60*laborRate) / batchKg;
     const { pkgBox: rkPkgBox, pkgBag: rkPkgBag } = getRecipePkg(prod);
 
     // Custo completo (igual a updateResults)
@@ -5688,7 +5688,7 @@ function printFichaTecnica() {
   const mu         = markup / 100;
   const batchKg    = prod.batchKg ?? 15;
   const ingPerKg   = prod.ingredients.reduce((s,i) => s+i.qty*i.price, 0) / batchKg;
-  const laborPerKg_= ((prod.tempoLote??120)/60*laborRate) / batchKg;
+  const laborPerKg_= excludeLabor ? 0 : ((prod.tempoLote??120)/60*laborRate) / batchKg;
   const fullBox    = ingPerKg*1.5 + fixedPerKg*1.5 + pkgBox + energy + laborPerKg_*1.5;
   const savedPrice = prod.targetPriceBox;
   const priceBox   = savedPrice != null ? savedPrice : fullBox*(1+mu);
@@ -5759,7 +5759,7 @@ function printFichaTecnica() {
   const mu = markup / 100;
   const batchKg = prod.batchKg ?? 15;
   const ingPerKg = prod.ingredients.reduce((s,i)=>s+i.qty*i.price,0) / batchKg;
-  const laborPerKg_ = ((prod.tempoLote??120)/60*laborRate)/batchKg;
+  const laborPerKg_ = excludeLabor ? 0 : ((prod.tempoLote??120)/60*laborRate)/batchKg;
   const fullBox = ingPerKg*1.5 + fixedPerKg*1.5 + pkg + energy + laborPerKg_*1.5;
   const priceBox = fullBox*(1+mu);
 

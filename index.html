@@ -5070,7 +5070,7 @@ async function loadMasterIngs() {
         price:      r.preco,
         unit:       r.unidade || 'kg',
         supplier:   r.fornecedor || '',
-        avgWeightG: r.avg_weight_g != null ? r.avg_weight_g : null,
+        avgWeightG: r.avg_weight_g != null ? (r.avg_weight_g > 0 && r.avg_weight_g < 1 ? r.avg_weight_g * 1000 : r.avg_weight_g) : null, // valores < 1 estavam em kg: corrigir para gramas
       }));
       return;
     }
@@ -5265,6 +5265,7 @@ function renderIngredientes() {
             value="${ing.avgWeightG != null ? ing.avgWeightG : ''}"
             data-id="${ing.id}" data-field="avgWeightG"
             oninput="onMasterIngChange(this)"
+            onchange="if(this.value>0&&this.value<1){this.value=Math.round(this.value*1000);onMasterIngChange(this)}"
             style="width:54px;background:#0f1a35;border:1px solid #2a3a5a;border-radius:5px;
                    color:#4ade80;padding:4px 5px;font-size:0.85em;text-align:right">
           <span style="font-size:0.75em;color:#666">g/un</span>
